@@ -41,6 +41,15 @@ const config: Config = {
       boxShadow: {
         hard: "6px 6px 0 0 #111111",
       },
+      keyframes: {
+        sway: {
+          "0%, 100%": { transform: "rotate(-0.9deg) translateY(0)" },
+          "50%": { transform: "rotate(0.9deg) translateY(-4px)" },
+        },
+      },
+      animation: {
+        sway: "sway 3.2s ease-in-out infinite",
+      },
     },
   },
   plugins: [],

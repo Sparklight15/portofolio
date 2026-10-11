@@ -1,3 +1,14 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  html {
+    scrollbar-gutter: stable;
+  }
+}
+/* Lebar halaman sama di semua halaman, baik yang punya scrollbar maupun tidak,
+   supaya garis dekoratif dan isi tidak bergeser ke samping saat pindah halaman. */
+html {
+  scrollbar-gutter: stable;
+}
