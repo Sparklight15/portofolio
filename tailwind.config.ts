@@ -14,27 +14,32 @@ const config: Config = {
         hand: ["var(--font-caveat)", "Comic Sans MS", "cursive"],
       },
       colors: {
-        // NILAI SEMENTARA: ganti dengan palet desainmu
-        background: "#FAF8F5",
-        surface: "#F1EDE6",
-        foreground: "#1C1B1A",
-        muted: "#6E6A64",
-        border: "#E3DED5",
-        primary: {
-          DEFAULT: "#1C1B1A",
-          foreground: "#FAF8F5",
-        },
-        accent: "#E4572E",
+        background: "#FFFFFF", // White: background utama
+        surface: "#EBEBEB", // Gray 100: card, sticky note
+        border: "#BDBDBD", // Gray 300: garis, disabled
+        muted: "#666666", // Gray 600: caption, label
+        charcoal: "#333333", // Charcoal: teks sekunder
+        foreground: "#111111", // Black: teks, tombol, garis
       },
       fontSize: {
-        caption: ["0.8125rem", { lineHeight: "1.25rem" }],
-        body: ["1rem", { lineHeight: "1.65rem" }],
-        lead: ["1.25rem", { lineHeight: "1.9rem" }],
-        h4: ["1.5rem", { lineHeight: "2rem" }],
-        h3: ["2rem", { lineHeight: "2.5rem", letterSpacing: "-0.01em" }],
-        h2: ["clamp(2rem, 4vw, 3rem)", { lineHeight: "1.15", letterSpacing: "-0.02em" }],
-        h1: ["clamp(2.75rem, 7vw, 5rem)", { lineHeight: "1.05", letterSpacing: "-0.03em" }],
-        display: ["clamp(3.5rem, 11vw, 8rem)", { lineHeight: "1", letterSpacing: "-0.03em" }],
+        display: [
+          "clamp(3rem, 10vw, 4.75rem)",
+          { lineHeight: "0.9", letterSpacing: "-0.03em", fontWeight: "800" },
+        ],
+        "display-accent": ["clamp(2.5rem, 7vw, 3.375rem)", { lineHeight: "1" }],
+        h1: ["clamp(2rem, 5vw, 2.375rem)", { lineHeight: "1", fontWeight: "800" }],
+        h2: ["1.625rem", { lineHeight: "1.08", fontWeight: "800" }],
+        body: ["0.9375rem", { lineHeight: "1.7" }],
+        label: [
+          "0.75rem",
+          { lineHeight: "1.4", letterSpacing: "0.08em", fontWeight: "600" },
+        ],
+        caption: ["0.8125rem", { lineHeight: "1.4" }],
+        hand: ["clamp(1.4375rem, 3vw, 1.625rem)", { lineHeight: "1", fontWeight: "700" }],
+        numeral: ["clamp(3.25rem, 8vw, 5.25rem)", { lineHeight: "0.9", fontWeight: "800" }],
+      },
+      boxShadow: {
+        hard: "6px 6px 0 0 #111111",
       },
     },
   },

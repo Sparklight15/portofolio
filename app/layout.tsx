@@ -4,7 +4,7 @@ import "./globals.css";
 
 const poppins = Poppins({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700", "800"],
   variable: "--font-poppins",
   display: "swap",
   fallback: ["system-ui", "Arial", "sans-serif"],
@@ -21,6 +21,7 @@ const instrumentSerif = Instrument_Serif({
 
 const caveat = Caveat({
   subsets: ["latin"],
+  weight: ["600", "700"],
   variable: "--font-caveat",
   display: "swap",
   fallback: ["Comic Sans MS", "cursive"],
@@ -39,7 +40,7 @@ export default function RootLayout({
       lang="id"
       className={`${poppins.variable} ${instrumentSerif.variable} ${caveat.variable}`}
     >
-      <body className="bg-background font-sans text-foreground antialiased">
+      <body className="bg-background font-sans text-body text-foreground antialiased">
         {children}
       </body>
     </html>
