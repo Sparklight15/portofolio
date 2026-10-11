@@ -77,6 +77,16 @@ export async function POST(request: Request) {
   const passwordOk = await bcrypt.compare(password, hashToCheck);
 
   if (!usernameOk || !passwordOk) {
+    // === DIAGNOSTIK SEMENTARA: HAPUS SETELAH MASALAH KETEMU ===
+    console.warn("[login-debug]", {
+      usernameOk,
+      passwordOk, // tidak bermakna kalau usernameOk = false
+      inputUsernameLen: username.length,
+      envUsernameLen: adminUsername.length,
+      envHashLen: adminHash.length,
+      envHashPrefix: adminHash.slice(0, 7),
+    });
+    // === AKHIR DIAGNOSTIK ===
     recordLoginFailure(ip);
     return reply({ error: "invalid_credentials" }, 401);
   }
