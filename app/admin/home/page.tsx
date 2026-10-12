@@ -9,7 +9,6 @@ import {
 } from "../../../components/admin/AdminState";
 import { HomeGambarForm } from "../../../components/admin/HomeGambarForm";
 import { HomeTeksForm } from "../../../components/admin/HomeTeksForm";
-import { Button } from "../../../components/ui/Button";
 import { HOME_DEFAULT } from "../../../lib/home-defaults";
 import { getProfile } from "../../../lib/profile";
 
@@ -103,14 +102,7 @@ async function IsiHome() {
 
 export default function HomeAdminPage() {
   return (
-    <AdminShell
-      title="Konten Home"
-      action={
-        <Button href="/admin" variant="outline" size="sm">
-          Kembali
-        </Button>
-      }
-    >
+    <AdminShell>
       <Suspense fallback={<AdminLoading />}>
         <IsiHome />
       </Suspense>

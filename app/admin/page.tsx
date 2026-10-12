@@ -57,29 +57,9 @@ async function ProjectList() {
 }
 
 export default function AdminPage() {
+  // Tab dan tombol "Tambah Project" ada di app/admin/layout.tsx (AdminChrome).
   return (
-    <AdminShell
-      title="Daftar Project"
-      action={
-        <div className="flex flex-wrap items-center justify-end gap-2">
-          <Button href="/admin/home" variant="outline" size="sm">
-            Konten Home
-          </Button>
-          <Button href="/admin/about" variant="outline" size="sm">
-            Konten About
-          </Button>
-          <Button href="/admin/tools" variant="outline" size="sm">
-            Kelola Tools
-          </Button>
-          <Button href="/admin/contact" variant="outline" size="sm">
-            Kelola Contact
-          </Button>
-          <Button href="/admin/projects/baru" variant="filled" size="sm">
-            Tambah Project
-          </Button>
-        </div>
-      }
-    >
+    <AdminShell>
       <Suspense fallback={<AdminLoading />}>
         <ProjectList />
       </Suspense>

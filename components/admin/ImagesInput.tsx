@@ -28,7 +28,7 @@ type ImagesInputProps = {
   onChange: (updater: (prev: ImageItem[]) => ImageItem[]) => void;
 };
 
-const MAX_GAMBAR = 5;
+const MAX_GAMBAR = 6;
 const MAX_ASLI_BYTE = 15 * 1024 * 1024;
 const MAX_CAPTION = 200;
 const TIPE_BOLEH = ["image/jpeg", "image/png", "image/webp"];

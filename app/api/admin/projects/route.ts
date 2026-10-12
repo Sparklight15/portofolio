@@ -69,6 +69,9 @@ export async function POST(request: NextRequest) {
           summary: d.summary,
           problem: d.problem,
           insight: d.insight,
+          product_name: d.productName || null,
+          product_description: d.productDescription || null,
+          product_url: d.productUrl || null,
           sort_order: sortOrder,
           published: true,
         })
@@ -108,6 +111,18 @@ export async function POST(request: NextRequest) {
         }))
       );
       if (linkError) throw new Error(linkError.message);
+    }
+
+    // Video YouTube (opsional).
+    if (d.videoIds.length > 0) {
+      const { error: videoError } = await supabase.from("project_videos").insert(
+        d.videoIds.map((youtube_id, i) => ({
+          project_id: projectId,
+          youtube_id,
+          sort_order: i + 1,
+        }))
+      );
+      if (videoError) throw new Error(videoError.message);
     }
 
     return NextResponse.json({ id: projectId, slug: slugFinal });

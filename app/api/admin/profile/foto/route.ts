@@ -4,7 +4,7 @@ import {
   SESSION_COOKIE,
   verifySessionToken,
 } from "../../../../../lib/session";
-import { uploadFotoContact, validasiFoto } from "../../../../../lib/profile";
+import { uploadFoto, validasiFoto } from "../../../../../lib/profile";
 
 export async function POST(request: NextRequest) {
   // Verifikasi sesi sendiri, tidak hanya mengandalkan proxy.ts.
@@ -33,12 +33,12 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const profil = await uploadFotoContact(file);
-    return NextResponse.json({ ok: true, contactPhotoUrl: profil.contactPhotoUrl });
+    const profil = await uploadFoto(file);
+    return NextResponse.json({ ok: true, photoUrl: profil.photoUrl });
   } catch (e) {
-    console.error("Gagal mengunggah foto Contact:", e);
+    console.error("Gagal mengunggah foto:", e);
     return NextResponse.json(
-      { error: "Gagal mengunggah foto Contact." },
+      { error: "Gagal mengunggah foto." },
       { status: 500 }
     );
   }

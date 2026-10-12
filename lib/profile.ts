@@ -8,12 +8,16 @@ const MAX_BYTES = 5 * 1024 * 1024; // 5 MB, sama dengan batas bucket
 // Semua entri tetap tampil di halaman riwayat lengkap.
 // show kosong (data lama) dianggap true.
 // photos: URL foto bukti kegiatan (maksimal 10), tampil di halaman riwayat.
+// logo: URL logo entri (file di folder riwayat/). Kosong/tidak ada = halaman
+// publik memakai logo bawaan (ikon koper untuk Experience, topi wisuda untuk
+// Education).
 export type AboutEntri = {
   year: string;
   title: string;
   detail: string;
   show?: boolean;
   photos?: string[];
+  logo?: string;
 };
 
 export type Profile = {
@@ -56,12 +60,17 @@ function bacaEntri(nilai: unknown): AboutEntri[] | null {
           )
           .slice(0, RIWAYAT_FOTO_MAX)
       : [];
+    const logo =
+      typeof o.logo === "string" && /^https?:\/\//i.test(o.logo)
+        ? o.logo
+        : undefined;
     hasil.push({
       year: typeof o.year === "string" ? o.year : "",
       title: typeof o.title === "string" ? o.title : "",
       detail: typeof o.detail === "string" ? o.detail : "",
       show: o.show !== false,
       photos,
+      ...(logo ? { logo } : {}),
     });
   }
   return hasil;
@@ -601,6 +610,20 @@ function bersihkanFoto(
   return { data: hasil };
 }
 
+// Bersihkan logo satu entri. Tidak ada/null/kosong = tanpa logo (pakai bawaan).
+function bersihkanLogo(
+  input: unknown,
+  label: string
+): { error: string } | { data: string | undefined } {
+  if (input === undefined || input === null || input === "") {
+    return { data: undefined };
+  }
+  if (typeof input !== "string" || !fotoRiwayatValid(input)) {
+    return { error: `${label}: data logo tidak valid.` };
+  }
+  return { data: input };
+}
+
 // Bersihkan satu daftar entri (Experience atau Education).
 // undefined/null = null (pakai bawaan). Array = daftar baru (boleh kosong).
 // Jumlah entri bebas (sampai batas teknis), tapi yang show = true maksimal 1.
@@ -635,6 +658,8 @@ function bersihkanEntri(
     }
     const foto = bersihkanFoto(o.photos, label);
     if ("error" in foto) return { error: foto.error };
+    const logo = bersihkanLogo(o.logo, label);
+    if ("error" in logo) return { error: logo.error };
 
     // Entri yang semua kolomnya kosong dibuang.
     if (!year && !title && !detail) continue;
@@ -650,7 +675,14 @@ function bersihkanEntri(
     if (detail.length > ABOUT_DETAIL_MAX) {
       return { error: `${label}: detail maksimal ${ABOUT_DETAIL_MAX} karakter.` };
     }
-    hasil.push({ year, title, detail, show: o.show !== false, photos: foto.data });
+    hasil.push({
+      year,
+      title,
+      detail,
+      show: o.show !== false,
+      photos: foto.data,
+      ...(logo.data ? { logo: logo.data } : {}),
+    });
   }
 
   const jumlahTampil = hasil.filter((e) => e.show).length;
@@ -699,12 +731,13 @@ export function bersihkanAbout(
   };
 }
 
-// Kumpulkan semua URL foto riwayat dari daftar entri.
+// Kumpulkan semua URL file riwayat (foto bukti dan logo) dari daftar entri.
 function kumpulFoto(...daftar: (AboutEntri[] | null)[]): Set<string> {
   const hasil = new Set<string>();
   for (const d of daftar) {
     for (const e of d ?? []) {
       for (const u of e.photos ?? []) hasil.add(u);
+      if (e.logo) hasil.add(e.logo);
     }
   }
   return hasil;

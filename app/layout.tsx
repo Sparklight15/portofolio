@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Poppins, Instrument_Serif, Caveat } from "next/font/google";
 import GlobalArrows from "../components/public/GlobalArrows";
+import GlobalNav from "../components/public/GlobalNav";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -44,6 +45,9 @@ export default function RootLayout({
     >
       <body className="bg-background font-sans text-body text-foreground antialiased">
         {children}
+        <Suspense fallback={null}>
+          <GlobalNav />
+        </Suspense>
         <Suspense fallback={null}>
           <GlobalArrows />
         </Suspense>

@@ -7,7 +7,6 @@ import {
   AdminLoading,
 } from "../../../components/admin/AdminState";
 import { ToolRowActions } from "../../../components/admin/ToolRowActions";
-import { Button } from "../../../components/ui/Button";
 import { getToolsAdmin } from "../../../lib/tools-admin";
 
 export const metadata: Metadata = {
@@ -115,14 +114,7 @@ async function IsiTools() {
 
 export default function ToolsAdminPage() {
   return (
-    <AdminShell
-      title="Kelola Tools"
-      action={
-        <Button href="/admin" variant="outline" size="sm">
-          Kembali
-        </Button>
-      }
-    >
+    <AdminShell>
       <Suspense fallback={<AdminLoading />}>
         <IsiTools />
       </Suspense>

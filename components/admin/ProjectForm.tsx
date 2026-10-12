@@ -10,6 +10,8 @@ import type { ImageItem } from "./ImagesInput";
 import { LinksInput, barisTerisi, validateLinks } from "./LinksInput";
 import type { LinkRow, LinkRowErrors } from "./LinksInput";
 import { ToolsInput } from "./ToolsInput";
+import { PRODUK_DESKRIPSI_MAX, PRODUK_NAMA_MAX } from "../../lib/project-write";
+import { MAKS_VIDEO, ambilYoutubeId, thumbnailYoutube } from "../../lib/youtube";
 
 export type ProjectFormValues = {
   title: string;
@@ -20,14 +22,20 @@ export type ProjectFormValues = {
   summary: string;
   problem: string;
   insight: string;
+  // Produk yang dihasilkan (opsional): nama kosong = tidak ada produk.
+  productName: string;
+  productDescription: string;
+  productUrl: string;
   tools: string[];
   links: LinkRow[];
   images: ImageItem[];
+  // Link video YouTube (opsional), apa adanya seperti yang diketik.
+  videos: string[];
 };
 
 type TextFieldName = Exclude<
   keyof ProjectFormValues,
-  "tools" | "links" | "images"
+  "tools" | "links" | "images" | "videos"
 >;
 
 type FormErrors = Partial<Record<TextFieldName, string>>;
@@ -50,9 +58,13 @@ const KOSONG: ProjectFormValues = {
   summary: "",
   problem: "",
   insight: "",
+  productName: "",
+  productDescription: "",
+  productUrl: "",
   tools: [],
   links: [],
   images: [],
+  videos: [],
 };
 
 const NAMA_BULAN = [
@@ -116,7 +128,50 @@ function validate(v: ProjectFormValues, daftarJenis: string[]): FormErrors {
   if (!v.problem.trim()) errors.problem = "Masalah wajib diisi.";
   if (!v.insight.trim()) errors.insight = "Insight wajib diisi.";
 
+  // Produk (opsional). Nama wajib kalau deskripsi atau link diisi.
+  const namaProduk = v.productName.trim();
+  const deskProduk = v.productDescription.trim();
+  const urlProduk = v.productUrl.trim();
+  if (namaProduk.length > PRODUK_NAMA_MAX) {
+    errors.productName = `Nama produk maksimal ${PRODUK_NAMA_MAX} karakter.`;
+  }
+  if (deskProduk.length > PRODUK_DESKRIPSI_MAX) {
+    errors.productDescription = `Deskripsi produk maksimal ${PRODUK_DESKRIPSI_MAX} karakter.`;
+  }
+  if (!namaProduk && (deskProduk || urlProduk)) {
+    errors.productName = "Isi nama produk dulu kalau ada deskripsi atau link produk.";
+  }
+  if (urlProduk) {
+    let ok = false;
+    try {
+      const p = new URL(urlProduk);
+      ok = p.protocol === "http:" || p.protocol === "https:";
+    } catch {
+      ok = false;
+    }
+    if (!ok) errors.productUrl = "Link harus diawali http:// atau https://";
+  }
+
   return errors;
+}
+
+// Error per baris video (kunci = nomor baris). Baris kosong dilewati.
+function validateVideos(videos: string[]): Record<number, string> {
+  const out: Record<number, string> = {};
+  const terlihat = new Set<string>();
+  videos.forEach((v, i) => {
+    const t = v.trim();
+    if (!t) return;
+    const idYt = ambilYoutubeId(t);
+    if (!idYt) {
+      out[i] =
+        "Harus link YouTube yang valid (youtube.com/watch?v=..., youtu.be/..., atau /shorts/...).";
+      return;
+    }
+    if (terlihat.has(idYt)) out[i] = "Video ini sudah ada di baris lain.";
+    terlihat.add(idYt);
+  });
+  return out;
 }
 
 type FieldProps = {
@@ -172,6 +227,7 @@ function ProjectFormInner({
     {}
   );
   const [imagesError, setImagesError] = useState<string | null>(null);
+  const [videoErrors, setVideoErrors] = useState<Record<number, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [progress, setProgress] = useState("");
 
@@ -203,6 +259,35 @@ function ProjectFormInner({
     setValues((prev) => ({ ...prev, links: next }));
   }
 
+  function ubahVideo(index: number, nilai: string) {
+    setVideoErrors((prev) => {
+      const out = { ...prev };
+      delete out[index];
+      return out;
+    });
+    setValues((prev) => ({
+      ...prev,
+      videos: prev.videos.map((v, i) => (i === index ? nilai : v)),
+    }));
+  }
+
+  function tambahVideo() {
+    setValues((prev) =>
+      prev.videos.length >= MAKS_VIDEO
+        ? prev
+        : { ...prev, videos: [...prev.videos, ""] }
+    );
+  }
+
+  function hapusVideo(index: number) {
+    // Nomor baris bergeser, jadi pesan error lama dibuang semua.
+    setVideoErrors({});
+    setValues((prev) => ({
+      ...prev,
+      videos: prev.videos.filter((_, i) => i !== index),
+    }));
+  }
+
   // Pakai updater karena kompresi gambar selesai tidak serempak.
   function setImages(updater: (prev: ImageItem[]) => ImageItem[]) {
     setImagesError(null);
@@ -229,6 +314,10 @@ function ProjectFormInner({
       summary: values.summary.trim(),
       problem: values.problem.trim(),
       insight: values.insight.trim(),
+      productName: values.productName.trim(),
+      productDescription: values.productDescription.trim(),
+      productUrl: values.productUrl.trim(),
+      videos: values.videos.map((v) => v.trim()).filter(Boolean),
       tools: values.tools,
       links: barisTerisi(values.links).map((l) => ({
         label: l.label.trim(),
@@ -426,13 +515,16 @@ function ProjectFormInner({
     const found = validate(values, daftarJenis);
     const linkFound = validateLinks(values.links);
     const imagesFound = validateImages(values.images);
+    const videoFound = validateVideos(values.videos);
     setErrors(found);
     setLinkErrors(linkFound);
     setImagesError(imagesFound);
+    setVideoErrors(videoFound);
 
     if (
       Object.keys(found).length > 0 ||
       Object.keys(linkFound).length > 0 ||
+      Object.keys(videoFound).length > 0 ||
       imagesFound
     ) {
       showToast("Periksa lagi isian yang ditandai.");
@@ -596,6 +688,90 @@ function ProjectFormInner({
           />
         </Field>
 
+        <Field label="Produk">
+          <div className="space-y-3">
+            <p className="text-caption text-muted">
+              Opsional. Isi kalau project ini menghasilkan produk (misalnya
+              aplikasi mobile dari insight yang ditemukan). Kosongkan nama
+              produk kalau tidak ada: bagian ini tidak akan tampil.
+            </p>
+            <div>
+              <input
+                id="productName"
+                aria-label="Nama produk"
+                type="text"
+                maxLength={PRODUK_NAMA_MAX}
+                value={values.productName}
+                onChange={(e) => setField("productName", e.target.value)}
+                aria-invalid={errors.productName ? true : undefined}
+                aria-describedby={
+                  errors.productName ? "productName-error" : undefined
+                }
+                placeholder="Nama produk, contoh: Aplikasi pemantau churn"
+                className={fieldClass}
+              />
+              {errors.productName ? (
+                <p
+                  id="productName-error"
+                  className="mt-1 text-caption text-foreground"
+                >
+                  {errors.productName}
+                </p>
+              ) : null}
+            </div>
+            <div>
+              <textarea
+                id="productDescription"
+                aria-label="Deskripsi produk"
+                rows={3}
+                maxLength={PRODUK_DESKRIPSI_MAX}
+                value={values.productDescription}
+                onChange={(e) => setField("productDescription", e.target.value)}
+                aria-invalid={errors.productDescription ? true : undefined}
+                aria-describedby={
+                  errors.productDescription
+                    ? "productDescription-error"
+                    : undefined
+                }
+                placeholder="Deskripsi singkat produk (opsional)"
+                className={fieldClass}
+              />
+              {errors.productDescription ? (
+                <p
+                  id="productDescription-error"
+                  className="mt-1 text-caption text-foreground"
+                >
+                  {errors.productDescription}
+                </p>
+              ) : null}
+            </div>
+            <div>
+              <input
+                id="productUrl"
+                aria-label="Link produk"
+                type="text"
+                inputMode="url"
+                value={values.productUrl}
+                onChange={(e) => setField("productUrl", e.target.value)}
+                aria-invalid={errors.productUrl ? true : undefined}
+                aria-describedby={
+                  errors.productUrl ? "productUrl-error" : undefined
+                }
+                placeholder="https://... (link produk, opsional)"
+                className={fieldClass}
+              />
+              {errors.productUrl ? (
+                <p
+                  id="productUrl-error"
+                  className="mt-1 text-caption text-foreground"
+                >
+                  {errors.productUrl}
+                </p>
+              ) : null}
+            </div>
+          </div>
+        </Field>
+
         <Field id="tool-input" label="Tools">
           <ToolsInput
             id="tool-input"
@@ -618,6 +794,61 @@ function ProjectFormInner({
           {imagesError ? (
             <p className="mt-1 text-caption text-foreground">{imagesError}</p>
           ) : null}
+        </Field>
+
+        <Field label="Video">
+          <div className="space-y-3">
+            <p className="text-caption text-muted">
+              Opsional. Tempel link YouTube (maksimal {MAKS_VIDEO}). Video tidak
+              diunggah ke website, hanya ditampilkan lewat pemutar YouTube.
+            </p>
+            {values.videos.map((v, i) => {
+              const idYt = ambilYoutubeId(v);
+              return (
+                <div key={i} className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      inputMode="url"
+                      aria-label={`Link video ${i + 1}`}
+                      value={v}
+                      onChange={(e) => ubahVideo(i, e.target.value)}
+                      aria-invalid={videoErrors[i] ? true : undefined}
+                      placeholder="https://www.youtube.com/watch?v=..."
+                      className={fieldClass}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => hapusVideo(i)}
+                      className="shrink-0 rounded-lg border border-foreground bg-background px-4 py-3 text-label uppercase text-foreground hover:bg-surface"
+                    >
+                      Hapus
+                    </button>
+                  </div>
+                  {videoErrors[i] ? (
+                    <p className="text-caption text-foreground">
+                      {videoErrors[i]}
+                    </p>
+                  ) : idYt ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={thumbnailYoutube(idYt)}
+                      alt="Pratinjau video"
+                      className="h-14 w-auto rounded border border-border"
+                    />
+                  ) : null}
+                </div>
+              );
+            })}
+            <button
+              type="button"
+              onClick={tambahVideo}
+              disabled={values.videos.length >= MAKS_VIDEO}
+              className="rounded-lg border border-foreground bg-background px-4 py-3 text-label uppercase text-foreground hover:bg-surface disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              + Tambah link video
+            </button>
+          </div>
         </Field>
       </div>
 

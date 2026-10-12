@@ -6,7 +6,7 @@ import { getSupabaseAdmin } from "../../../../../lib/supabase-server";
 
 const BUCKET = "project-images";
 const URL_MARKER = `/object/public/${BUCKET}/`;
-const MAX_GAMBAR = 5;
+const MAX_GAMBAR = 6;
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -120,6 +120,9 @@ export async function PUT(
         summary: d.summary,
         problem: d.problem,
         insight: d.insight,
+        product_name: d.productName || null,
+        product_description: d.productDescription || null,
+        product_url: d.productUrl || null,
       })
       .eq("id", id)
       .select("id");
@@ -180,6 +183,32 @@ export async function PUT(
         .from("project_links")
         .delete()
         .in("id", idLinkLama);
+      if (error) throw new Error(error.message);
+    }
+
+    // 3b. Video YouTube: sisipkan yang baru dulu, baru hapus yang lama.
+    const { data: videoLama, error: videoLamaError } = await supabase
+      .from("project_videos")
+      .select("id")
+      .eq("project_id", id);
+    if (videoLamaError) throw new Error(videoLamaError.message);
+
+    if (d.videoIds.length > 0) {
+      const { error } = await supabase.from("project_videos").insert(
+        d.videoIds.map((youtube_id, i) => ({
+          project_id: id,
+          youtube_id,
+          sort_order: i + 1,
+        }))
+      );
+      if (error) throw new Error(error.message);
+    }
+    const idVideoLama = (videoLama ?? []).map((v) => v.id as string);
+    if (idVideoLama.length > 0) {
+      const { error } = await supabase
+        .from("project_videos")
+        .delete()
+        .in("id", idVideoLama);
       if (error) throw new Error(error.message);
     }
 

@@ -28,9 +28,11 @@ async function ToolsData() {
 }
 
 // justify-start: garis dekoratif harus di posisi yang sama di semua halaman.
+// overflow-clip (bukan hanya overflow-x-clip): kartu tools yang sedang beranimasi
+// naik dari bawah tidak boleh memunculkan scrollbar vertikal di desktop.
 export default function ToolsPage() {
   return (
-    <main className="mx-auto flex min-h-svh max-w-[1280px] flex-col justify-start gap-3 overflow-x-clip px-4 py-5 sm:px-10">
+    <main className="mx-auto flex min-h-svh max-w-[1280px] flex-col justify-start gap-3 overflow-clip px-4 py-5 sm:px-10">
       <SiteNav active="tools" />
       <Suspense
         fallback={

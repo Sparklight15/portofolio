@@ -1,5 +1,6 @@
 import { getSupabaseAdmin } from "./supabase-server";
 import type { ProjectFormValues } from "../components/admin/ProjectForm";
+import { linkYoutube } from "./youtube";
 
 export async function getProjectForEdit(
   id: string
@@ -7,11 +8,11 @@ export async function getProjectForEdit(
   try {
     const supabase = getSupabaseAdmin();
 
-    const [proyek, gambar, link, relasi] = await Promise.all([
+    const [proyek, gambar, link, relasi, video] = await Promise.all([
       supabase
         .from("projects")
         .select(
-          "id, title, category, project_year, project_month, summary, problem, insight"
+          "id, title, category, project_year, project_month, summary, problem, insight, product_name, product_description, product_url"
         )
         .eq("id", id)
         .maybeSingle(),
@@ -26,9 +27,15 @@ export async function getProjectForEdit(
         .eq("project_id", id)
         .order("sort_order", { ascending: true }),
       supabase.from("project_tools").select("tool_id").eq("project_id", id),
+      supabase
+        .from("project_videos")
+        .select("id, youtube_id, sort_order")
+        .eq("project_id", id)
+        .order("sort_order", { ascending: true }),
     ]);
 
-    const galat = proyek.error ?? gambar.error ?? link.error ?? relasi.error;
+    const galat =
+      proyek.error ?? gambar.error ?? link.error ?? relasi.error ?? video.error;
     if (galat) return { data: null, error: galat.message };
     if (!proyek.data) return { data: null, error: null };
 
@@ -54,6 +61,9 @@ export async function getProjectForEdit(
       summary: (p.summary as string) ?? "",
       problem: (p.problem as string) ?? "",
       insight: (p.insight as string) ?? "",
+      productName: (p.product_name as string | null) ?? "",
+      productDescription: (p.product_description as string | null) ?? "",
+      productUrl: (p.product_url as string | null) ?? "",
       tools: namaTools,
       links: (link.data ?? []).map((l) => ({
         id: `db-${l.id}`,
@@ -74,6 +84,7 @@ export async function getProjectForEdit(
           thumbnail: g.is_thumbnail === true,
         };
       }),
+      videos: (video.data ?? []).map((v) => linkYoutube(v.youtube_id as string)),
     };
 
     return { data: nilai, error: null };

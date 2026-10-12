@@ -8,7 +8,7 @@ import { getSupabaseAdmin } from "../../../../../../lib/supabase-server";
 
 const BUCKET = "project-images";
 const MAX_BYTE = 5 * 1024 * 1024;
-const MAX_GAMBAR = 5;
+const MAX_GAMBAR = 6;
 const EKSTENSI: Record<string, string> = {
   "image/webp": "webp",
   "image/jpeg": "jpg",

@@ -10,7 +10,6 @@ import {
 import { AboutForm } from "../../../components/admin/AboutForm";
 import { CvUploadForm } from "../../../components/admin/CvUploadForm";
 import { FotoUploadForm } from "../../../components/admin/FotoUploadForm";
-import { Button } from "../../../components/ui/Button";
 import { ABOUT_DEFAULT } from "../../../lib/about-defaults";
 import { getProfile } from "../../../lib/profile";
 
@@ -29,6 +28,17 @@ function Baris({ label, children }: { label: string; children: ReactNode }) {
         {label}
       </th>
       <td className="px-4 py-3 align-top text-body text-foreground">
+        {children}
+      </td>
+    </tr>
+  );
+}
+
+// Baris selebar tabel (tanpa kolom label), untuk form yang lebar.
+function BarisPenuh({ children }: { children: ReactNode }) {
+  return (
+    <tr className="border-b border-border last:border-b-0">
+      <td colSpan={2} className="p-4 align-top text-body text-foreground">
         {children}
       </td>
     </tr>
@@ -72,94 +82,89 @@ async function IsiAbout() {
   const fotoUrl = urlAman(profil.photoUrl);
 
   return (
-    <table className="w-full border border-foreground">
-      <tbody>
-        <Baris label="CV saat ini">
-          {adaCv ? (
-            <div className="space-y-1">
-              <a
-                href={profil.cvUrl as string}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline underline-offset-4"
-              >
-                {profil.cvFilename || "Lihat CV"}
-              </a>
-              <p className="text-caption text-muted">
-                Diunggah: {waktuUnggah(profil.updatedAt)}
-              </p>
-            </div>
-          ) : (
-            "Belum ada CV."
-          )}
-        </Baris>
+    <div className="overflow-hidden rounded-lg border border-border">
+      <table className="w-full">
+        <tbody>
+          <Baris label="CV saat ini">
+            {adaCv ? (
+              <div className="space-y-1">
+                <a
+                  href={profil.cvUrl as string}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline underline-offset-4"
+                >
+                  {profil.cvFilename || "Lihat CV"}
+                </a>
+                <p className="text-caption text-muted">
+                  Diunggah: {waktuUnggah(profil.updatedAt)}
+                </p>
+              </div>
+            ) : (
+              "Belum ada CV."
+            )}
+          </Baris>
 
-        <Baris label="Unggah CV">
-          <CvUploadForm adaCv={adaCv} />
-        </Baris>
+          <Baris label="Unggah CV">
+            <CvUploadForm adaCv={adaCv} />
+          </Baris>
 
-        <Baris label="Foto saat ini">
-          {fotoUrl ? (
-            <div className="w-40 overflow-hidden border border-border bg-surface">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={fotoUrl}
-                alt="Foto profil saat ini"
-                className="block aspect-[3/4] w-full object-cover"
-              />
-            </div>
-          ) : (
-            "Belum ada foto. Halaman About memakai foto bawaan."
-          )}
-        </Baris>
+          <Baris label="Foto saat ini">
+            {fotoUrl ? (
+              <div className="w-40 overflow-hidden border border-border bg-surface">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={fotoUrl}
+                  alt="Foto profil saat ini"
+                  className="block aspect-[3/4] w-full object-cover"
+                />
+              </div>
+            ) : (
+              "Belum ada foto. Halaman About memakai foto bawaan."
+            )}
+          </Baris>
 
-        <Baris label="Unggah foto">
-          <FotoUploadForm adaFoto={Boolean(fotoUrl)} />
-        </Baris>
+          <Baris label="Unggah foto">
+            <FotoUploadForm adaFoto={Boolean(fotoUrl)} />
+          </Baris>
 
-        <Baris label="Konten About">
-          {/* key: form dipasang ulang setiap data tersimpan berubah (efek cacheComponents). */}
-          <AboutForm key={JSON.stringify(awal)} awal={awal} />
-        </Baris>
+          <BarisPenuh>
+            {/* key: form dipasang ulang setiap data tersimpan berubah (efek cacheComponents). */}
+            <AboutForm key={JSON.stringify(awal)} awal={awal} />
+          </BarisPenuh>
 
-        <Baris label="Catatan">
-          <ul className="list-disc space-y-1 pl-5 text-caption text-muted">
-            <li>
-              Batas karakter ada supaya halaman About tetap muat satu layar
-              tanpa scroll.
-            </li>
-            <li>
-              Experience dan Education boleh banyak entri (maksimal 30 per
-              blok). Centang &quot;Tampilkan di About&quot; untuk memilih satu
-              entri yang muncul di halaman About, maksimal 1 per blok.
-            </li>
-            <li>
-              Entri yang tidak dicentang tetap tersimpan dan ditampilkan di
-              halaman riwayat lengkap, lewat link &quot;Lihat semua&quot; di
-              About.
-            </li>
-            <li>
-              Foto profil di sini juga dipakai di halaman Contact (nanti,
-              setelah Contact disambungkan). CV muncul sebagai tombol
-              &quot;Download CV&quot; di halaman About.
-            </li>
-          </ul>
-        </Baris>
-      </tbody>
-    </table>
+          <Baris label="Catatan">
+            <ul className="list-disc space-y-1 pl-5 text-caption text-muted">
+              <li>
+                Batas karakter ada supaya bagian atas halaman About tetap muat
+                satu layar tanpa scroll.
+              </li>
+              <li>
+                Experience dan Education boleh banyak entri (maksimal 30 per
+                blok). Semua entri, lengkap dengan foto bukti, tampil di
+                bagian detail di bawah About.
+              </li>
+              <li>
+                Centang &quot;Tampilkan di bagian atas About&quot; untuk
+                memilih satu entri yang muncul di ringkasan atas, maksimal 1
+                per blok. Mencentang entri lain otomatis memindahkan pilihan.
+              </li>
+              <li>
+                Foto profil di sini hanya dipakai di halaman About. Foto untuk
+                halaman Contact diatur terpisah di Kelola Contact. CV muncul
+                sebagai tombol &quot;Download CV&quot; di halaman About.
+              </li>
+            </ul>
+          </Baris>
+        </tbody>
+      </table>
+    </div>
   );
 }
 
 export default function AboutAdminPage() {
   return (
-    <AdminShell
-      title="Konten About"
-      action={
-        <Button href="/admin" variant="outline" size="sm">
-          Kembali
-        </Button>
-      }
-    >
+    <AdminShell>
       <Suspense fallback={<AdminLoading />}>
         <IsiAbout />
       </Suspense>

@@ -9,7 +9,6 @@ import {
 import { ContactLinkForm } from "../../../components/admin/ContactLinkForm";
 import { ContactLinkRow } from "../../../components/admin/ContactLinkRow";
 import { FotoContactUploadForm } from "../../../components/admin/FotoContactUploadForm";
-import { Button } from "../../../components/ui/Button";
 import { getContactLinks } from "../../../lib/contact-links";
 import { getProfile } from "../../../lib/profile";
 
@@ -138,14 +137,7 @@ async function IsiContact() {
 
 export default function ContactAdminPage() {
   return (
-    <AdminShell
-      title="Kelola Contact"
-      action={
-        <Button href="/admin" variant="outline" size="sm">
-          Kembali
-        </Button>
-      }
-    >
+    <AdminShell>
       <Suspense fallback={<AdminLoading />}>
         <IsiContact />
       </Suspense>

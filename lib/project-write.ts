@@ -1,7 +1,12 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { MAKS_VIDEO, ambilYoutubeId } from "./youtube";
 
 const NAMA_TOOLS_RE = /^[\p{L}\p{N}][\p{L}\p{N} .+#/_()-]*$/u;
 const JENIS_RE = /^[a-z0-9]+( [a-z0-9]+)*$/;
+
+// Produk yang dihasilkan (opsional).
+export const PRODUK_NAMA_MAX = 80;
+export const PRODUK_DESKRIPSI_MAX = 600;
 
 export type LinkInput = { label: string; url: string };
 
@@ -15,6 +20,12 @@ export type ProjectInput = {
   insight: string;
   tools: string[];
   links: LinkInput[];
+  // Opsional: string kosong = tidak ada produk.
+  productName: string;
+  productDescription: string;
+  productUrl: string;
+  // ID video YouTube (11 karakter), sudah diekstrak dan tanpa duplikat.
+  videoIds: string[];
 };
 
 export function slugify(s: string): string {
@@ -31,6 +42,17 @@ export function slugify(s: string): string {
 
 function teks(v: unknown): string {
   return typeof v === "string" ? v.trim() : "";
+}
+
+function urlHttp(url: string): boolean {
+  try {
+    const p = new URL(url);
+    return (
+      (p.protocol === "http:" || p.protocol === "https:") && url.length <= 2000
+    );
+  } catch {
+    return false;
+  }
 }
 
 // Mengembalikan data bersih, atau pesan error.
@@ -105,8 +127,62 @@ export function validasiProject(
     links.push({ label, url });
   }
 
+  // Produk yang dihasilkan (opsional). Nama wajib kalau deskripsi/link diisi.
+  const productName = teks(b.productName).replace(/\s+/g, " ");
+  const productDescription = teks(b.productDescription);
+  const productUrl = teks(b.productUrl);
+  if (productName.length > PRODUK_NAMA_MAX) {
+    return { error: `Nama produk maksimal ${PRODUK_NAMA_MAX} karakter.` };
+  }
+  if (productDescription.length > PRODUK_DESKRIPSI_MAX) {
+    return {
+      error: `Deskripsi produk maksimal ${PRODUK_DESKRIPSI_MAX} karakter.`,
+    };
+  }
+  if (!productName && (productDescription || productUrl)) {
+    return {
+      error: "Isi nama produk dulu kalau ada deskripsi atau link produk.",
+    };
+  }
+  if (productUrl && !urlHttp(productUrl)) {
+    return { error: "Link produk harus diawali http:// atau https://" };
+  }
+
+  // Video YouTube (opsional). Yang disimpan hanya ID videonya.
+  const videoMentah = Array.isArray(b.videos) ? b.videos : [];
+  if (videoMentah.length > 10) return { error: "Terlalu banyak link video." };
+  const videoIds: string[] = [];
+  for (const v of videoMentah) {
+    const link = teks(v);
+    if (!link) continue;
+    const id = ambilYoutubeId(link);
+    if (!id) {
+      return {
+        error: `Link video harus link YouTube yang valid: ${link.slice(0, 60)}`,
+      };
+    }
+    if (!videoIds.includes(id)) videoIds.push(id);
+  }
+  if (videoIds.length > MAKS_VIDEO) {
+    return { error: `Maksimal ${MAKS_VIDEO} video.` };
+  }
+
   return {
-    data: { title, month, year, category, summary, problem, insight, tools, links },
+    data: {
+      title,
+      month,
+      year,
+      category,
+      summary,
+      problem,
+      insight,
+      tools,
+      links,
+      productName,
+      productDescription,
+      productUrl,
+      videoIds,
+    },
   };
 }
 

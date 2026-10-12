@@ -11,6 +11,7 @@ type ImageRow = {
 type ToolRef = { name: string | null; icon_url?: string | null };
 type ToolRow = { tools: ToolRef | ToolRef[] | null };
 type LinkRow = { label: string | null; url: string | null; sort_order: number | null };
+type VideoRow = { youtube_id: string | null; sort_order: number | null };
 
 type ListRow = {
   slug: string;
@@ -29,9 +30,13 @@ type DetailRow = {
   summary: string | null;
   problem: string | null;
   insight: string | null;
+  product_name: string | null;
+  product_description: string | null;
+  product_url: string | null;
   project_images: ImageRow[] | null;
   project_links: LinkRow[] | null;
   project_tools: ToolRow[] | null;
+  project_videos: VideoRow[] | null;
 };
 
 export type ProjectDetailData = {
@@ -42,12 +47,18 @@ export type ProjectDetailData = {
   summary: string | null;
   problem: string | null;
   insight: string | null;
+  productName: string | null;
+  productDescription: string | null;
+  productUrl: string | null;
+  videos: { youtubeId: string }[];
   images: { url: string; alt: string | null; caption: string | null }[];
   links: { label: string; url: string }[];
   tools: { name: string; iconUrl: string | null }[];
   position: number;
   total: number;
 };
+
+const YOUTUBE_ID = /^[A-Za-z0-9_-]{11}$/;
 
 function clean(value: string | null | undefined): string | null {
   return typeof value === "string" && value.trim() ? value.trim() : null;
@@ -128,7 +139,7 @@ export async function getPublicProjectDetail(slug: string): Promise<{
       supabase
         .from("projects")
         .select(
-          "slug, title, category, project_year, summary, problem, insight, project_images(image_url, alt_text, caption, sort_order), project_links(label, url, sort_order), project_tools(tools(name, icon_url))"
+          "slug, title, category, project_year, summary, problem, insight, product_name, product_description, product_url, project_images(image_url, alt_text, caption, sort_order), project_links(label, url, sort_order), project_tools(tools(name, icon_url)), project_videos(youtube_id, sort_order)"
         )
         .eq("slug", slug)
         .eq("published", true)
@@ -171,6 +182,24 @@ export async function getPublicProjectDetail(slug: string): Promise<{
       .map((t) => ({ name: t.name, iconUrl: clean(t.icon_url) }))
       .sort((a, b) => a.name.localeCompare(b.name));
 
+    // Produk tampil hanya kalau namanya terisi. Link produk hanya http(s).
+    const productName = clean(r.product_name);
+    const productUrlRaw = clean(r.product_url);
+    const productUrl =
+      productName && productUrlRaw && /^https?:\/\//i.test(productUrlRaw)
+        ? productUrlRaw
+        : null;
+
+    // Video: hanya ID YouTube 11 karakter yang valid, urut sort_order, maks 3.
+    const videos = [...(r.project_videos ?? [])]
+      .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+      .flatMap((v) =>
+        typeof v.youtube_id === "string" && YOUTUBE_ID.test(v.youtube_id)
+          ? [{ youtubeId: v.youtube_id }]
+          : []
+      )
+      .slice(0, 3);
+
     return {
       data: {
         slug: r.slug,
@@ -180,6 +209,10 @@ export async function getPublicProjectDetail(slug: string): Promise<{
         summary: clean(r.summary),
         problem: clean(r.problem),
         insight: clean(r.insight),
+        productName,
+        productDescription: productName ? clean(r.product_description) : null,
+        productUrl,
+        videos,
         images,
         links,
         tools,
