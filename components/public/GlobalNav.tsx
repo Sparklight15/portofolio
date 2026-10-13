@@ -155,13 +155,14 @@ function Bar({ active }: { active: NavKey }) {
     // tidak menghalangi klik ke konten di bawahnya; hanya pill yang menerima klik.
     <nav
       aria-label="Navigasi utama"
-      className="pointer-events-none fixed inset-x-0 top-5 z-30 flex justify-center px-4 sm:px-10"
+      className="pointer-events-none fixed inset-x-0 top-5 z-30 flex justify-center px-2 sm:px-10"
     >
       <ul
         ref={ulRef}
         data-siap="0"
         onMouseLeave={redupkan}
-        className="group/nav pointer-events-auto relative flex max-w-full items-center gap-1.5 overflow-x-auto rounded-full bg-surface/95 p-1.5 shadow-[0_8px_28px_rgba(0,0,0,0.14)] ring-1 ring-black/5"
+        // Hapus overflow-x-auto, perkecil gap dan padding di mobile
+        className="group/nav pointer-events-auto relative flex max-w-[95vw] sm:max-w-full items-center gap-0.5 sm:gap-1.5 rounded-full bg-surface/95 p-1 sm:p-1.5 shadow-[0_8px_28px_rgba(0,0,0,0.14)] ring-1 ring-black/5"
       >
         {/* Pill hover (abu-abu): meluncur mengikuti menu yang disorot. */}
         <li
@@ -194,7 +195,8 @@ function Bar({ active }: { active: NavKey }) {
                 onClick={() => pilihMenu(item.key)}
                 onFocus={() => sorot(item.key)}
                 onBlur={redupkan}
-                className={`grid h-10 place-items-center whitespace-nowrap rounded-full px-3.5 text-[13px] no-underline transition-colors duration-500 motion-reduce:transition-none sm:h-[37px] sm:px-[26px] sm:text-[14px] ${
+                // Perkecil ukuran font, padding, dan tinggi di mobile (text-xs/12px, px-2.5, h-8)
+                className={`grid h-8 place-items-center whitespace-nowrap rounded-full px-2.5 text-[12px] no-underline transition-colors duration-500 motion-reduce:transition-none sm:h-[37px] sm:px-[26px] sm:text-[14px] ${
                   aktif
                     ? "text-foreground group-data-[siap=1]/nav:text-background"
                     : "text-muted hover:text-foreground focus-visible:text-foreground"

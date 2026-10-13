@@ -13,34 +13,11 @@ export type HomeKonten = {
   imageUrl?: string | null;
 };
 
-// Ukuran dasar teks raksasa. Ukuran kartu, gelembung, dan tinggi area hero
-// ikut skala dari nilai ini, jadi proporsinya sama dengan mockup di semua lebar.
-// Selain lebar layar (25vw), ukurannya dibatasi tinggi layar supaya seluruh
-// halaman muat tanpa scroll: 221px = perkiraan tinggi elemen lain (menu, garis,
-// teks kecil, baris nama, jarak) dan 1.657 = tinggi area hero dibanding ukuran dasar.
-// (Naik dari 215px karena garis dekoratif kini memakai DecorLine yang 5,5px lebih tinggi.)
+// Ukuran dasar teks raksasa.
 const heroVars = {
-  "--hero": "clamp(96px, min(25vw, calc((100svh - 221px) / 1.657)), 350px)",
+  "--hero": "clamp(96px, min(33vw, calc((100svh - 221px) / 1.657)), 350px)",
 } as CSSProperties;
 
-// Animasi masuk per huruf: "port" (kiri atas), "folio." (kanan atas), baris
-// identitas (label1 dari kiri, label2 dari atas, label3 dari kanan) dan
-// gelembung sapaan yang muncul lebih awal, frame foto muncul dari blur tebal
-// sampai tajam, karakter naik dari tepi bawah frame sambil "dicuci"
-// (pucat + kabur -> tajam), lalu bergoyang miring pelan (poros di kaki).
-// Bintang hiasan muncul dari blur (sambil berputar dan membesar), lalu
-// melayang pelan tanpa jeda.
-// Satuan em = ikut ukuran huruf. Keadaan akhir = tanpa transform/filter.
-// Setelan: huruf besar 2.2s, jeda 0.14s (port, mulai 0.3s) / 0.11s (folio,
-// mulai 0.5s), baris identitas mulai 0.9s / 1.2s / 1.5s (--d), durasi 1.6s.
-// Gelembung sapaan: mulai 1.6s.
-// Frame: mulai 0.6s, durasi 1.8s. Karakter: mulai 1.2s, durasi 2.6s.
-// Goyang: mulai 3s, siklus 3.4s, miring +-2.5 derajat, ayunan mulus tanpa
-// jeda. Kalau karakter terpotong tipis di tepi frame, kecilkan jadi 2 derajat.
-// Bintang: muncul 1.4s pada waktu --b (bintang besar 2.0s, kecil 2.3s,
-// baris identitas 1.1s dan 1.4s), lalu melayang (siklus --dur, putar --rot).
-// Huruf besar memakai will-change supaya digambar di lapisan GPU sendiri
-// (mengurangi kesendat saat blur) dan blur dibuat 8px (lebih ringan).
 const ANIMASI_CSS = `
 @keyframes hero-huruf-kiri{
   0%{opacity:0;transform:translate3d(-0.6em,-0.18em,0);filter:blur(8px)}
@@ -92,6 +69,14 @@ const ANIMASI_CSS = `
   50%{transform:translateY(-8%) rotate(var(--rot)) scale(1.1);animation-timing-function:cubic-bezier(.37,0,.63,1)}
   100%{transform:translateY(0) rotate(0deg) scale(1)}
 }
+/* Petunjuk swipe: berkedip lembut (opacity saja) */
+@keyframes hero-geser-kedip{
+  0%, 100% {opacity:0.5;}
+  50% {opacity:1;}
+}
+.hero-geser-petunjuk{
+  animation: hero-geser-kedip 2.5s ease-in-out infinite;
+}
 .hero-huruf{display:inline-block}
 .hero-kiri,.hero-kanan{will-change:transform,opacity,filter;backface-visibility:hidden}
 .hero-kiri{animation:hero-huruf-kiri 2.2s cubic-bezier(.33,1,.68,1) both;animation-delay:calc(.3s + var(--i) * .14s)}
@@ -107,11 +92,10 @@ const ANIMASI_CSS = `
 .hero-bintang-a{--dur:5s;--rot:18deg}
 .hero-bintang-b{--dur:6.2s;--rot:-14deg}
 @media (prefers-reduced-motion:reduce){
-  .hero-kiri,.hero-kanan,.hero-lb-kiri,.hero-lb-atas,.hero-lb-kanan,.hero-sapaan,.hero-bingkai,.hero-karakter,.hero-goyang,.hero-bintang{animation:none}
+  .hero-kiri,.hero-kanan,.hero-lb-kiri,.hero-lb-atas,.hero-lb-kanan,.hero-sapaan,.hero-bingkai,.hero-karakter,.hero-goyang,.hero-bintang,.hero-geser-petunjuk{animation:none}
 }
 `;
 
-// Huruf besar ("port" dan "folio.").
 function Huruf({ teks, arah }: { teks: string; arah: "kiri" | "kanan" }) {
   return (
     <>
@@ -128,7 +112,6 @@ function Huruf({ teks, arah }: { teks: string; arah: "kiri" | "kanan" }) {
   );
 }
 
-// Teks baris identitas: per huruf, spasi dijaga lewat white-space: pre.
 function HurufLabel({
   teks,
   arah,
@@ -161,8 +144,6 @@ function HurufLabel({
   );
 }
 
-// Bintang hiasan: muncul dari blur pada waktu `mulai`, lalu melayang pelan.
-// `varian` a/b = arah putar dan tempo berbeda supaya tidak kompak.
 function Bintang({
   className,
   mulai,
@@ -206,92 +187,107 @@ export function HomeHero({ konten }: { konten?: HomeKonten }) {
   const gambarSrc = gambarKustom ?? HOME_DEFAULT.image;
 
   return (
-    <section className="flex flex-col gap-3">
+    <section className="flex flex-col flex-1 relative w-full">
       <style>{ANIMASI_CSS}</style>
 
-      {/* Garis dekoratif (sama persis di semua halaman) */}
+      {/* Garis dekoratif tetap di posisinya (paling atas) */}
       <DecorLine />
 
-      {/* Dua baris teks kecil */}
-      <div className="flex flex-col items-center gap-1 text-center text-label uppercase text-muted sm:flex-row sm:justify-between sm:text-left">
-        <span>{kicker1}</span>
-        <span>{kicker2}</span>
-      </div>
-
-      {/* Area hero */}
-      <div
-        style={heroVars}
-        className="relative flex h-[calc(var(--hero)*1.657)] flex-col items-center justify-center"
-      >
-        <h1 className="sr-only">Portofolio Evi Fauziah</h1>
-
-        <div
-          aria-hidden="true"
-          className="relative z-[1] text-[length:var(--hero)] font-extrabold leading-[0.86] tracking-[-0.03em] text-foreground"
-        >
-          <Huruf teks="port" arah="kiri" />
-          <div className="hero-sapaan absolute left-[calc(var(--hero)*0.357)] top-[calc(var(--hero)*0.01)] -rotate-[8deg] whitespace-nowrap rounded-full border-2 border-foreground bg-background px-[18px] pb-1.5 pt-0.5 font-hand text-[length:clamp(16px,calc(var(--hero)*0.0914),32px)] font-bold leading-[1.1] tracking-normal text-foreground">
-            {sapaan}
-          </div>
+      {/* Pembungkus relatif agar elemen absolute di dalamnya menempel ke area ini */}
+      <div className="relative flex flex-col flex-1 w-full pt-4 sm:pt-6">
+        
+        {/* Teks kicker absolute melayang di atas, jarak diturunkan (top-14) */}
+        <div className="absolute inset-x-0 top-14 sm:top-10 flex flex-col items-center gap-4 sm:gap-1 text-center text-label uppercase text-muted sm:flex-row sm:justify-between sm:text-left z-10">
+          <span>{kicker1}</span>
+          <span>{kicker2}</span>
         </div>
 
-        {/* "folio." di lapisan paling depan (z-[4]), di atas frame (z-[2]) dan bintang (z-[3]) */}
-        <div
-          aria-hidden="true"
-          className="relative z-[4] mt-1 h-[calc(var(--hero)*1.057)] font-serif text-[length:var(--hero)] font-normal italic leading-[0.86] text-foreground"
-        >
-          <Huruf teks="folio." arah="kanan" />
-        </div>
+        {/* Pembungkus Hero Utama */}
+        <div className="flex flex-col flex-1 items-center justify-center w-full pb-[12vh] sm:pb-0">
+          
+          {/* Area hero */}
+          <div
+            style={heroVars}
+            className="relative flex w-full h-[calc(var(--hero)*1.657)] flex-col items-center justify-center"
+          >
+            <h1 className="sr-only">Portofolio Evi Fauziah</h1>
 
-        {/* Kartu ilustrasi: frame muncul dari blur tebal sampai tajam, karakter
-            naik dari tepi bawah frame sambil "dicuci", lalu bergoyang miring pelan.
-            Animasi dipasang di lapisan dalam (bukan di kotak ini) supaya tidak
-            bentrok dengan transform penengah dari Tailwind. */}
-        <div className="absolute left-1/2 top-1/2 z-[2] aspect-[336/440] w-[calc(var(--hero)*0.96)] -translate-x-1/2 -translate-y-1/2">
-          <div className="hero-bingkai absolute inset-0 rounded-[calc(var(--hero)*0.08)] border-[3px] border-foreground bg-surface shadow-[6px_6px_0_0_#111111] md:shadow-[10px_10px_0_0_#111111]" />
-
-          <div className="absolute inset-0 [clip-path:inset(-300px_3px_3px_3px)]">
-            <div className="hero-karakter absolute inset-0">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={gambarSrc}
-                width={gambarKustom ? undefined : 768}
-                height={gambarKustom ? undefined : 1129}
-                alt={
-                  gambarKustom
-                    ? "Ilustrasi karakter Evi Fauziah"
-                    : "Ilustrasi tinta hitam-putih perempuan berambut panjang melambaikan tangan"
-                }
-                fetchPriority="high"
-                decoding="async"
-                className="hero-goyang absolute left-0 top-[-13.6%] block h-auto w-[101.2%]"
-              />
+            <div
+              aria-hidden="true"
+              className="relative z-[1] text-[length:var(--hero)] font-extrabold leading-[0.86] tracking-[-0.03em] text-foreground"
+            >
+              <Huruf teks="port" arah="kiri" />
+              <div className="hero-sapaan absolute left-[calc(var(--hero)*0.357)] top-[calc(var(--hero)*0.01)] -rotate-[8deg] whitespace-nowrap rounded-full border-2 border-foreground bg-background px-3 sm:px-[18px] pb-1 pt-0.5 sm:pb-1.5 sm:pt-0.5 font-hand text-[length:clamp(14px,calc(var(--hero)*0.0914),32px)] font-bold leading-[1.1] tracking-normal text-foreground">
+                {sapaan}
+              </div>
             </div>
+
+            <div
+              aria-hidden="true"
+              className="relative z-[4] mt-1 h-[calc(var(--hero)*1.057)] font-serif text-[length:var(--hero)] font-normal italic leading-[0.86] text-foreground"
+            >
+              <Huruf teks="folio." arah="kanan" />
+            </div>
+
+            <div className="absolute left-1/2 top-1/2 z-[2] aspect-[336/440] w-[calc(var(--hero)*0.96)] -translate-x-1/2 -translate-y-1/2">
+              <div className="hero-bingkai absolute inset-0 rounded-[calc(var(--hero)*0.08)] border-[3px] border-foreground bg-surface shadow-[6px_6px_0_0_#111111] md:shadow-[10px_10px_0_0_#111111]" />
+
+              <div className="absolute inset-0 [clip-path:inset(-300px_3px_3px_3px)]">
+                <div className="hero-karakter absolute inset-0">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={gambarSrc}
+                    width={gambarKustom ? undefined : 768}
+                    height={gambarKustom ? undefined : 1129}
+                    alt={
+                      gambarKustom
+                        ? "Ilustrasi karakter Evi Fauziah"
+                        : "Ilustrasi tinta hitam-putih perempuan berambut panjang melambaikan tangan"
+                    }
+                    fetchPriority="high"
+                    decoding="async"
+                    className="hero-goyang absolute left-0 top-[-13.6%] block h-auto w-[101.2%]"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Posisi bintang */}
+            <Bintang
+              mulai="2s"
+              varian="a"
+              className="absolute right-[2%] top-[26%] z-[3] h-6 w-6 text-foreground md:h-14 md:w-14 md:right-[12.5%]"
+            />
+            <Bintang
+              mulai="2.3s"
+              varian="b"
+              className="absolute bottom-[14%] left-[2%] z-[3] h-4 w-4 text-muted md:h-7 md:w-7 md:left-[10%]"
+            />
+          </div>
+
+          {/* Baris identitas */}
+          <div className="mt-14 sm:mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-1 font-serif text-[length:clamp(14px,2vw,24px)] italic leading-tight text-charcoal">
+            <HurufLabel teks={label1} arah="kiri" mulai="0.9s" />
+            <Bintang mulai="1.1s" varian="a" className="h-4 w-4 text-foreground" />
+            <HurufLabel teks={label2} arah="atas" mulai="1.2s" />
+            <Bintang mulai="1.4s" varian="b" className="h-4 w-4 text-foreground" />
+            <HurufLabel teks={label3} arah="kanan" mulai="1.5s" />
           </div>
         </div>
+        
+        {/* Petunjuk swipe berupa teks (hanya tampil di mobile, dekoratif) */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-6 bottom-6 z-20 flex items-center justify-center sm:hidden"
+        >
+          <p className="hero-geser-petunjuk text-label uppercase text-muted">
+            swipe right · swipe left
+          </p>
+        </div>
 
-        <Bintang
-          mulai="2s"
-          varian="a"
-          className="absolute right-[12.5%] top-[26%] z-[3] h-8 w-8 text-foreground md:h-14 md:w-14"
-        />
-        <Bintang
-          mulai="2.3s"
-          varian="b"
-          className="absolute bottom-[14%] left-[10%] z-[3] h-5 w-5 text-muted md:h-7 md:w-7"
-        />
       </div>
 
-      {/* Baris identitas */}
-      <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1 font-serif text-[length:clamp(16px,2vw,24px)] italic leading-tight text-charcoal">
-        <HurufLabel teks={label1} arah="kiri" mulai="0.9s" />
-        <Bintang mulai="1.1s" varian="a" className="h-4 w-4 text-foreground" />
-        <HurufLabel teks={label2} arah="atas" mulai="1.2s" />
-        <Bintang mulai="1.4s" varian="b" className="h-4 w-4 text-foreground" />
-        <HurufLabel teks={label3} arah="kanan" mulai="1.5s" />
-      </div>
-
-      {/* Panah halaman: sekarang dirender GlobalArrows di layout (komponen ini tidak menampilkan apa pun) */}
+      {/* Panah halaman (bawaan untuk desktop) */}
       <PageArrow href="/contact" label="Halaman sebelumnya" side="left" />
       <PageArrow href="/about" label="Halaman berikutnya" side="right" />
     </section>
