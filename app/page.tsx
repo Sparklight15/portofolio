@@ -33,12 +33,17 @@ async function HomeData() {
   return <HomeHero konten={konten} />;
 }
 
+// Placeholder kosong: jangan tampilkan isi bawaan supaya tidak ada pergantian teks/gambar.
+function HomeFallback() {
+  return <div aria-hidden className="min-h-[60svh]" />;
+}
+
 // justify-start: garis dekoratif harus di posisi yang sama di semua halaman.
 export default function Home() {
   return (
     <main className="mx-auto flex min-h-svh max-w-[1280px] flex-col justify-start gap-3 overflow-x-clip px-4 py-5 sm:px-10">
       <SiteNav active="home" />
-      <Suspense fallback={<HomeHero />}>
+      <Suspense fallback={<HomeFallback />}>
         <HomeData />
       </Suspense>
     </main>
