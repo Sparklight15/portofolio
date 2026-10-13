@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import type { CSSProperties } from "react";
 import { HOME_DEFAULT } from "../../lib/home-defaults";
 import { DecorLine, PageArrow } from "./PageChrome";
@@ -144,6 +145,82 @@ function HurufLabel({
   );
 }
 
+// Animasi huruf untuk teks kicker di atas hero. Huruf dikelompokkan per
+// kata (nowrap per kata) supaya teks tetap bisa turun baris di layar sempit
+// tanpa terpotong di tengah kata.
+function HurufKicker({
+  teks,
+  arah,
+  mulai,
+}: {
+  teks: string;
+  arah: "kiri" | "kanan";
+  mulai: string;
+}) {
+  const kelas = arah === "kiri" ? "hero-lb-kiri" : "hero-lb-kanan";
+  const kata = teks.split(" ").filter(Boolean);
+  let nomor = 0;
+  return (
+    <span aria-label={teks}>
+      <span aria-hidden="true">
+        {kata.map((k, ki) => (
+          <Fragment key={ki}>
+            {ki > 0 ? " " : null}
+            <span className="whitespace-nowrap">
+              {Array.from(k).map((h, hi) => {
+                const i = nomor++;
+                return (
+                  <span
+                    key={hi}
+                    className={`hero-huruf ${kelas}`}
+                    style={{ "--i": i, "--d": mulai } as CSSProperties}
+                  >
+                    {h}
+                  </span>
+                );
+              })}
+            </span>
+          </Fragment>
+        ))}
+      </span>
+    </span>
+  );
+}
+
+// BARU: ikon panah ganda tipis (<< atau >>) untuk petunjuk swipe.
+function PanahGanda({
+  arah,
+  className,
+}: {
+  arah: "kiri" | "kanan";
+  className?: string;
+}) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      {arah === "kanan" ? (
+        <>
+          <path d="M5 6l6 6-6 6" />
+          <path d="M12 6l6 6-6 6" />
+        </>
+      ) : (
+        <>
+          <path d="M19 6l-6 6 6 6" />
+          <path d="M12 6l-6 6 6 6" />
+        </>
+      )}
+    </svg>
+  );
+}
+
 function Bintang({
   className,
   mulai,
@@ -198,10 +275,11 @@ export function HomeHero({ konten }: { konten?: HomeKonten }) {
         
         {/* Teks kicker: di mobile ikut alur layout dengan jarak bawah (mb-10)
             supaya kepala karakter dan bubble sapaan tidak menyentuhnya;
-            di sm ke atas melayang absolute di atas seperti sebelumnya */}
+            di sm ke atas melayang absolute di atas seperti sebelumnya.
+            Beranimasi: kicker1 dari kiri, kicker2 dari kanan. */}
         <div className="relative z-10 mb-10 flex flex-col items-center gap-2 text-center text-label uppercase text-muted sm:absolute sm:inset-x-0 sm:top-10 sm:mb-0 sm:flex-row sm:justify-between sm:gap-1 sm:text-left">
-          <span>{kicker1}</span>
-          <span>{kicker2}</span>
+          <HurufKicker teks={kicker1} arah="kiri" mulai="0.2s" />
+          <HurufKicker teks={kicker2} arah="kanan" mulai="0.4s" />
         </div>
 
         {/* Pembungkus Hero Utama */}
@@ -277,14 +355,25 @@ export function HomeHero({ konten }: { konten?: HomeKonten }) {
           </div>
         </div>
         
-        {/* Petunjuk swipe berupa teks (hanya tampil di mobile, dekoratif) */}
+        {/* Petunjuk swipe (dekoratif). Teks tampil di mobile dan desktop;
+            ikon << >> abu-abu tipis hanya di sm ke atas. */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-x-6 bottom-6 z-20 flex items-center justify-center sm:hidden"
+          className="pointer-events-none absolute inset-x-6 bottom-6 z-20 flex items-center justify-center sm:bottom-3"
         >
-          <p className="hero-geser-petunjuk text-label uppercase text-muted">
-            swipe right · swipe left
-          </p>
+          <div className="hero-geser-petunjuk flex items-center gap-3">
+            <PanahGanda
+              arah="kiri"
+              className="hidden h-5 w-5 text-border sm:block"
+            />
+            <p className="text-label uppercase text-muted">
+              swipe right · swipe left
+            </p>
+            <PanahGanda
+              arah="kanan"
+              className="hidden h-5 w-5 text-border sm:block"
+            />
+          </div>
         </div>
 
       </div>
