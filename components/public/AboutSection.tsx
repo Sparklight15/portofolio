@@ -97,8 +97,21 @@ const ANIMASI_CSS = `
 .ab-melayang{transform-box:fill-box;transform-origin:center;animation:ab-melayang 5s ease-in-out ${(3.3 - GESER).toFixed(1)}s infinite}
 .ab-turun{display:inline-block;animation:ab-turun 1.6s ease-in-out infinite}
 html:has(#detail-about){scroll-behavior:smooth}
+.ab-root{--tempo:1}
 @supports (animation-timeline:view()){
   .ab-gulir{animation:ab-naik 1s ease-out both;animation-timeline:view();animation-range:entry 0% entry 70%}
+}
+/* Mobile: semua jeda dipercepat (--tempo), durasi blur dipersingkat, dan
+   animasi detail saat scroll selesai lebih cepat. Desktop tidak berubah. */
+@media (max-width:1023px){
+  .ab-root{--tempo:.4}
+  .ab-h{animation-duration:1s!important}
+  .ab-foto{animation-duration:1.4s}
+  .ab-naik{animation-duration:1s}
+  .ab-pop{animation-duration:.7s}
+  @supports (animation-timeline:view()){
+    .ab-gulir{animation-range:entry 0% entry 35%}
+  }
 }
 @media (prefers-reduced-motion:reduce){
   .ab-h,.ab-foto,.ab-kanan,.ab-naik,.ab-pop,.ab-orbit,.ab-bintang,.ab-melayang,.ab-turun,.ab-gulir{animation:none}
@@ -108,7 +121,7 @@ html:has(#detail-about){scroll-behavior:smooth}
 
 function tunda(detik: number) {
   return {
-    animationDelay: `${Math.max(0, detik - GESER).toFixed(2)}s`,
+    animationDelay: `calc(${Math.max(0, detik - GESER).toFixed(2)}s * var(--tempo, 1))`,
   } as CSSProperties;
 }
 
@@ -185,7 +198,7 @@ function Huruf({
                     className="ab-h"
                     style={
                       {
-                        animationDelay: `${delay.toFixed(2)}s`,
+                        animationDelay: `calc(${delay.toFixed(2)}s * var(--tempo, 1))`,
                         animationDuration: `${durasi}s`,
                       } as CSSProperties
                     }
@@ -268,7 +281,7 @@ function BlokDetail({
                 </div>
 
                 {foto.length > 0 ? (
-                  <ul className="grid grid-cols-[repeat(auto-fill,minmax(88px,112px))] gap-2">
+                  <ul className="grid grid-cols-2 gap-2 sm:grid-cols-[repeat(auto-fill,minmax(88px,112px))]">
                     {foto.map((url, n) => (
                       <li key={`${url}-${n}`}>
                         <a
@@ -343,7 +356,7 @@ export default function AboutSection({
   const mulaiNama = MULAI_JUDUL + Array.from(SAPA).length * JEDA_HURUF;
 
   return (
-    <div className="relative flex flex-col gap-3" style={SCALE}>
+    <div className="ab-root relative flex flex-col gap-3" style={SCALE}>
       <style>{ANIMASI_CSS}</style>
 
       {/* Garis dekoratif dirender di app/about/page.tsx (di luar PageSlide)
@@ -514,13 +527,15 @@ export default function AboutSection({
           >
             {deskripsi}
           </p>
-          <div className="flex flex-wrap items-center [gap:calc(var(--u)_*_1.2)] [margin-top:calc(var(--u)_*_1.4)] lg:[margin-top:0]">
+          {/* Mobile: dua tombol kiri-kanan, selebar layar (flex-1, tidak turun baris).
+              Desktop (lg): kembali seperti semula. */}
+          <div className="flex flex-nowrap items-center gap-2 [margin-top:calc(var(--u)_*_1.4)] lg:flex-wrap lg:[gap:calc(var(--u)_*_1.2)] lg:[margin-top:0]">
             {cvAman ? (
               <a
                 href={cvAman}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="ab-pop inline-block whitespace-nowrap rounded-xl border-2 border-foreground bg-foreground font-semibold text-background no-underline [font-size:max(13px,calc(var(--u)_*_1.7))] [padding:calc(var(--u)_*_1.4)_calc(var(--u)_*_3)]"
+                className="ab-pop inline-flex min-w-0 flex-[0.85] items-center justify-center whitespace-nowrap rounded-xl border-2 border-foreground bg-foreground text-center font-semibold text-background no-underline [font-size:12px] [padding:calc(var(--u)_*_1.4)_8px] min-[400px]:[font-size:13px] lg:inline-block lg:flex-none lg:[font-size:max(13px,calc(var(--u)_*_1.7))] lg:[padding:calc(var(--u)_*_1.4)_calc(var(--u)_*_3)]"
                 style={tunda(2.4)}
               >
                 Download CV
@@ -528,7 +543,7 @@ export default function AboutSection({
             ) : null}
             <a
               href="#detail-about"
-              className="ab-pop inline-flex items-center whitespace-nowrap rounded-xl border-2 border-foreground bg-transparent font-semibold text-foreground no-underline [gap:calc(var(--u)_*_0.8)] [font-size:max(13px,calc(var(--u)_*_1.7))] [padding:calc(var(--u)_*_1.4)_calc(var(--u)_*_2.4)]"
+              className="ab-pop inline-flex min-w-0 flex-1 items-center justify-center whitespace-nowrap rounded-xl border-2 border-foreground bg-transparent font-semibold text-foreground no-underline [gap:6px] [font-size:12px] [padding:calc(var(--u)_*_1.4)_8px] min-[400px]:[font-size:13px] lg:flex-none lg:[gap:calc(var(--u)_*_0.8)] lg:[font-size:max(13px,calc(var(--u)_*_1.7))] lg:[padding:calc(var(--u)_*_1.4)_calc(var(--u)_*_2.4)]"
               style={tunda(2.55)}
             >
               Scroll untuk detail
@@ -544,7 +559,7 @@ export default function AboutSection({
             Desktop: kedua blok berdekatan dan diletakkan di tengah tinggi
             frame (dari tepi atas frame sampai tepi bawah bayangannya). */}
         {blok.length > 0 ? (
-          <div className="order-3 flex w-full max-w-[460px] min-w-0 flex-col [gap:calc(var(--u)_*_3.2)] lg:h-[var(--h)] lg:max-w-[300px] lg:flex-1 lg:basis-[250px] lg:justify-center lg:pt-[calc(var(--h)_*_0.0395)] lg:pb-[calc(var(--h)_*_0.0921_-_10px)]">
+          <div className="order-3 hidden w-full max-w-[460px] min-w-0 flex-col lg:flex [gap:calc(var(--u)_*_3.2)] lg:h-[var(--h)] lg:max-w-[300px] lg:flex-1 lg:basis-[250px] lg:justify-center lg:pt-[calc(var(--h)_*_0.0395)] lg:pb-[calc(var(--h)_*_0.0921_-_10px)]">
             {blok.map((b, bi) => (
               <section
                 key={b.title}
