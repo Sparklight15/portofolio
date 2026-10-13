@@ -635,6 +635,15 @@ export default function AboutSection({
         </div>
       </div>
 
+      {/* Petunjuk swipe (mobile saja): kanan = halaman sebelumnya, kiri = berikutnya */}
+      <div
+        className="flex items-center justify-between pb-6 text-[12px] font-semibold uppercase tracking-[0.08em] text-muted lg:hidden"
+        aria-hidden="true"
+      >
+        <span>&laquo; swipe right</span>
+        <span>swipe left &raquo;</span>
+      </div>
+
       {/* Tombol kembali ke atas: muncul setelah scroll ke bagian detail */}
       <ScrollUpButton />
 
