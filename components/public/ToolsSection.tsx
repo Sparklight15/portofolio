@@ -105,10 +105,49 @@ const ANIMASI_CSS = `
 .tl-h{display:inline-block;animation:tl-huruf 1.8s cubic-bezier(.22,1,.36,1) both}
 .tl-naik{animation:tl-naik 1.5s cubic-bezier(.22,1,.36,1) both}
 .tl-k{animation:tl-kartu 1.6s cubic-bezier(.22,1,.36,1) both}
+@keyframes tl-geser-kedip{
+  0%,100%{opacity:.5}
+  50%{opacity:1}
+}
+.tl-geser{animation:tl-geser-kedip 2.5s ease-in-out infinite}
 @media (prefers-reduced-motion:reduce){
-  .tl-h,.tl-naik,.tl-k{animation:none}
+  .tl-h,.tl-naik,.tl-k,.tl-geser{animation:none}
 }
 `;
+
+// Ikon panah ganda tipis (<< atau >>) untuk petunjuk swipe (sama dengan Home).
+function PanahGanda({
+  arah,
+  className,
+}: {
+  arah: "kiri" | "kanan";
+  className?: string;
+}) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      {arah === "kanan" ? (
+        <>
+          <path d="M5 6l6 6-6 6" />
+          <path d="M12 6l6 6-6 6" />
+        </>
+      ) : (
+        <>
+          <path d="M19 6l-6 6 6 6" />
+          <path d="M12 6l-6 6 6 6" />
+        </>
+      )}
+    </svg>
+  );
+}
 
 function tunda(detik: number) {
   return { animationDelay: `${detik.toFixed(2)}s` } as CSSProperties;
@@ -397,6 +436,20 @@ export default function ToolsSection({ tools }: { tools: PublicTool[] }) {
             ))}
           </div>
         )}
+      </div>
+
+      {/* Petunjuk swipe (mobile saja), gaya sama dengan Home: << teks >> berkedip lembut */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none flex items-center justify-center pb-4 pt-6 sm:hidden"
+      >
+        <div className="tl-geser flex items-center gap-2">
+          <PanahGanda arah="kiri" className="h-4 w-4 shrink-0 text-border" />
+          <p className="whitespace-nowrap text-label uppercase text-muted">
+            swipe right · swipe left
+          </p>
+          <PanahGanda arah="kanan" className="h-4 w-4 shrink-0 text-border" />
+        </div>
       </div>
     </div>
   );
