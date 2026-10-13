@@ -49,6 +49,15 @@ const ANIMASI_CSS = `
 @media (prefers-reduced-motion:reduce){
   .pg-k{opacity:1;animation:none!important}
 }
+/* Petunjuk swipe: berkedip lembut (opacity saja), sama seperti Home */
+@keyframes pg-geser-kedip{
+  0%,100%{opacity:.5}
+  50%{opacity:1}
+}
+.pg-geser{animation:pg-geser-kedip 2.5s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){
+  .pg-geser{animation:none}
+}
 `;
 
 // Pecah teks jadi huruf-huruf animasi. ax/ay = arah datang huruf (px).
@@ -86,6 +95,40 @@ function Huruf({
         ))}
       </span>
     </>
+  );
+}
+
+// Ikon panah ganda tipis (<< atau >>) untuk petunjuk swipe (sama dengan Home).
+function PanahGanda({
+  arah,
+  className,
+}: {
+  arah: "kiri" | "kanan";
+  className?: string;
+}) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      {arah === "kanan" ? (
+        <>
+          <path d="M5 6l6 6-6 6" />
+          <path d="M12 6l6 6-6 6" />
+        </>
+      ) : (
+        <>
+          <path d="M19 6l-6 6 6 6" />
+          <path d="M12 6l-6 6 6 6" />
+        </>
+      )}
+    </svg>
   );
 }
 
@@ -225,6 +268,20 @@ export default function ProjectGallery({
           ))}
         </div>
       )}
+
+      {/* Petunjuk swipe (mobile saja), gaya sama dengan Home: << teks >> berkedip lembut */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none flex items-center justify-center pt-4 sm:hidden"
+      >
+        <div className="pg-geser flex items-center gap-2">
+          <PanahGanda arah="kiri" className="h-4 w-4 shrink-0 text-border" />
+          <p className="whitespace-nowrap text-label uppercase text-muted">
+            swipe right · swipe left
+          </p>
+          <PanahGanda arah="kanan" className="h-4 w-4 shrink-0 text-border" />
+        </div>
+      </div>
 
       {/* Panah halaman hanya tampil di bagian atas (diatur GlobalArrows);
           setelah scroll, panah memudar dan tombol ini muncul. */}
