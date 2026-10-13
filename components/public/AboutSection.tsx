@@ -98,6 +98,11 @@ const ANIMASI_CSS = `
 .ab-turun{display:inline-block;animation:ab-turun 1.6s ease-in-out infinite}
 html:has(#detail-about){scroll-behavior:smooth}
 .ab-root{--tempo:1}
+@keyframes ab-geser-kedip{
+  0%,100%{opacity:.5}
+  50%{opacity:1}
+}
+.ab-geser{animation:ab-geser-kedip 2.5s ease-in-out infinite}
 @supports (animation-timeline:view()){
   .ab-gulir{animation:ab-naik 1s ease-out both;animation-timeline:view();animation-range:entry 0% entry 70%}
 }
@@ -114,7 +119,7 @@ html:has(#detail-about){scroll-behavior:smooth}
   }
 }
 @media (prefers-reduced-motion:reduce){
-  .ab-h,.ab-foto,.ab-kanan,.ab-naik,.ab-pop,.ab-orbit,.ab-bintang,.ab-melayang,.ab-turun,.ab-gulir{animation:none}
+  .ab-h,.ab-foto,.ab-kanan,.ab-naik,.ab-pop,.ab-orbit,.ab-bintang,.ab-melayang,.ab-turun,.ab-gulir,.ab-geser{animation:none}
   html:has(#detail-about){scroll-behavior:auto}
 }
 `;
@@ -213,6 +218,40 @@ function Huruf({
         ))}
       </span>
     </>
+  );
+}
+
+// Ikon panah ganda tipis (<< atau >>) untuk petunjuk swipe (sama dengan Home).
+function PanahGanda({
+  arah,
+  className,
+}: {
+  arah: "kiri" | "kanan";
+  className?: string;
+}) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      {arah === "kanan" ? (
+        <>
+          <path d="M5 6l6 6-6 6" />
+          <path d="M12 6l6 6-6 6" />
+        </>
+      ) : (
+        <>
+          <path d="M19 6l-6 6 6 6" />
+          <path d="M12 6l-6 6 6 6" />
+        </>
+      )}
+    </svg>
   );
 }
 
@@ -635,13 +674,18 @@ export default function AboutSection({
         </div>
       </div>
 
-      {/* Petunjuk swipe (mobile saja): kanan = halaman sebelumnya, kiri = berikutnya */}
+      {/* Petunjuk swipe (mobile saja), gaya sama dengan Home: << teks >> berkedip lembut */}
       <div
-        className="flex items-center justify-between pb-6 text-[12px] font-semibold uppercase tracking-[0.08em] text-muted lg:hidden"
         aria-hidden="true"
+        className="pointer-events-none flex items-center justify-center pb-6 sm:hidden"
       >
-        <span>&laquo; swipe right</span>
-        <span>swipe left &raquo;</span>
+        <div className="ab-geser flex items-center gap-2">
+          <PanahGanda arah="kiri" className="h-4 w-4 shrink-0 text-border" />
+          <p className="whitespace-nowrap text-label uppercase text-muted">
+            swipe right · swipe left
+          </p>
+          <PanahGanda arah="kanan" className="h-4 w-4 shrink-0 text-border" />
+        </div>
       </div>
 
       {/* Tombol kembali ke atas: muncul setelah scroll ke bagian detail */}
