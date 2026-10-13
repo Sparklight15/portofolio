@@ -196,8 +196,10 @@ export function HomeHero({ konten }: { konten?: HomeKonten }) {
       {/* Pembungkus relatif agar elemen absolute di dalamnya menempel ke area ini */}
       <div className="relative flex flex-col flex-1 w-full pt-4 sm:pt-6">
         
-        {/* Teks kicker absolute melayang di atas, jarak diturunkan (top-14) */}
-        <div className="absolute inset-x-0 top-14 sm:top-10 flex flex-col items-center gap-4 sm:gap-1 text-center text-label uppercase text-muted sm:flex-row sm:justify-between sm:text-left z-10">
+        {/* Teks kicker: di mobile ikut alur layout dengan jarak bawah (mb-10)
+            supaya kepala karakter dan bubble sapaan tidak menyentuhnya;
+            di sm ke atas melayang absolute di atas seperti sebelumnya */}
+        <div className="relative z-10 mb-10 flex flex-col items-center gap-2 text-center text-label uppercase text-muted sm:absolute sm:inset-x-0 sm:top-10 sm:mb-0 sm:flex-row sm:justify-between sm:gap-1 sm:text-left">
           <span>{kicker1}</span>
           <span>{kicker2}</span>
         </div>
