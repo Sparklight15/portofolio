@@ -349,10 +349,13 @@ export default function AboutSection({
       {/* Garis dekoratif dirender di app/about/page.tsx (di luar PageSlide)
           supaya tetap diam saat halaman masuk. */}
 
+      {/* Urutan tampil: di mobile = perkenalan (order-1), foto (order-2),
+          experience/education (order-3). Di desktop (lg) = foto, perkenalan,
+          experience/education, sama seperti urutan di kode. */}
       <div className="flex flex-col items-center gap-10 lg:flex-row lg:justify-center lg:px-16">
         {/* Kolom 1: foto */}
         <div
-          className="ab-foto relative aspect-[520/760] w-full max-w-[520px] shrink-0 lg:h-[var(--h)] lg:w-auto lg:max-w-none"
+          className="ab-foto relative order-2 aspect-[520/760] w-full max-w-[520px] shrink-0 lg:order-1 lg:h-[var(--h)] lg:w-auto lg:max-w-none"
           style={tunda(0.7)}
         >
           <svg
@@ -468,11 +471,12 @@ export default function AboutSection({
         </div>
 
         {/* Kolom 2: perkenalan */}
+        {/* Mobile: tampil paling atas (order-1), di atas foto. */}
         {/* Desktop: tinggi = tinggi foto. Isi dibagi dari atas frame (padding atas 3,95%
             tinggi) sampai tepi bawah bayangan frame (9,21% tinggi dikurangi bayangan
             10px). "About me" rata dengan tepi atas frame, tombol rata dengan tepi
             bawah bayangan frame. */}
-        <div className="flex w-full max-w-[460px] min-w-0 flex-col [gap:calc(var(--u)_*_2.2)] lg:h-[var(--h)] lg:flex-1 lg:basis-[360px] lg:justify-between lg:pt-[calc(var(--h)_*_0.0395)] lg:pb-[calc(var(--h)_*_0.0921_-_10px)] lg:[gap:calc(var(--u)_*_1.2)]">
+        <div className="order-1 flex w-full max-w-[460px] min-w-0 flex-col [gap:calc(var(--u)_*_2.2)] lg:order-2 lg:h-[var(--h)] lg:flex-1 lg:basis-[360px] lg:justify-between lg:pt-[calc(var(--h)_*_0.0395)] lg:pb-[calc(var(--h)_*_0.0921_-_10px)] lg:[gap:calc(var(--u)_*_1.2)]">
           <div
             className="font-semibold uppercase leading-none tracking-[0.08em] text-muted [font-size:max(11px,calc(var(--u)_*_1.2))]"
             style={{ "--ax": "-16px", "--ay": "0px" } as CSSProperties}
@@ -536,10 +540,11 @@ export default function AboutSection({
         </div>
 
         {/* Kolom 3: experience dan education (maksimal 1 entri tampil per blok).
+            Mobile: paling bawah (order-3), setelah foto.
             Desktop: kedua blok berdekatan dan diletakkan di tengah tinggi
             frame (dari tepi atas frame sampai tepi bawah bayangannya). */}
         {blok.length > 0 ? (
-          <div className="flex w-full max-w-[460px] min-w-0 flex-col [gap:calc(var(--u)_*_3.2)] lg:h-[var(--h)] lg:max-w-[300px] lg:flex-1 lg:basis-[250px] lg:justify-center lg:pt-[calc(var(--h)_*_0.0395)] lg:pb-[calc(var(--h)_*_0.0921_-_10px)]">
+          <div className="order-3 flex w-full max-w-[460px] min-w-0 flex-col [gap:calc(var(--u)_*_3.2)] lg:h-[var(--h)] lg:max-w-[300px] lg:flex-1 lg:basis-[250px] lg:justify-center lg:pt-[calc(var(--h)_*_0.0395)] lg:pb-[calc(var(--h)_*_0.0921_-_10px)]">
             {blok.map((b, bi) => (
               <section
                 key={b.title}
