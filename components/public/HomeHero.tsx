@@ -187,40 +187,6 @@ function HurufKicker({
   );
 }
 
-// BARU: ikon panah ganda tipis (<< atau >>) untuk petunjuk swipe.
-function PanahGanda({
-  arah,
-  className,
-}: {
-  arah: "kiri" | "kanan";
-  className?: string;
-}) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      {arah === "kanan" ? (
-        <>
-          <path d="M5 6l6 6-6 6" />
-          <path d="M12 6l6 6-6 6" />
-        </>
-      ) : (
-        <>
-          <path d="M19 6l-6 6 6 6" />
-          <path d="M12 6l-6 6 6 6" />
-        </>
-      )}
-    </svg>
-  );
-}
-
 function Bintang({
   className,
   mulai,
@@ -355,25 +321,16 @@ export function HomeHero({ konten }: { konten?: HomeKonten }) {
           </div>
         </div>
         
-        {/* Petunjuk swipe (dekoratif). Teks tampil di mobile dan desktop;
-            ikon << >> abu-abu tipis hanya di sm ke atas. */}
+        {/* Petunjuk swipe (dekoratif). Hanya tampil di mobile (di bawah sm).
+            Di desktop disembunyikan karena posisinya bertabrakan dengan baris
+            identitas, dan navigasi sudah lewat panah halaman kiri/kanan. */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-x-6 bottom-6 z-20 flex items-center justify-center sm:bottom-3"
+          className="pointer-events-none absolute inset-x-6 bottom-6 z-20 flex items-center justify-center sm:hidden"
         >
-          <div className="hero-geser-petunjuk flex items-center gap-3">
-            <PanahGanda
-              arah="kiri"
-              className="hidden h-5 w-5 text-border sm:block"
-            />
-            <p className="text-label uppercase text-muted">
-              swipe right · swipe left
-            </p>
-            <PanahGanda
-              arah="kanan"
-              className="hidden h-5 w-5 text-border sm:block"
-            />
-          </div>
+          <p className="hero-geser-petunjuk text-label uppercase text-muted">
+            swipe right · swipe left
+          </p>
         </div>
 
       </div>
